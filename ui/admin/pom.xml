@@ -126,6 +126,12 @@
               org.springframework.security.core.userdetails,
               org.springframework.dao,
               org.ops4j.pax.wicket.util.proxy,
+              javax.servlet,
+              org.apache.wicket.settings,
+              org.apache.wicket.session,
+              org.apache.wicket.util.file,
+              org.apache.wicket.request,
+              javax.servlet.http,
               net.sf.cglib.core;version="[2,3)",
               net.sf.cglib.proxy;version="[2,3)",
               net.sf.cglib.reflect;version="[2,3)", *
