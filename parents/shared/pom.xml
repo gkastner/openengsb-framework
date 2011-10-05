@@ -252,6 +252,9 @@
     <aries.jpa.version>0.3</aries.jpa.version>
     <aries.jndi.version>0.3</aries.jndi.version>
     <aries.transaction.version>0.3</aries.transaction.version>
+    <querydsl.version>2.2.3</querydsl.version>
+    <codegen.version>0.4.3</codegen.version>
+    <collections15.wrapped.version>4.01.w1</collections15.wrapped.version>
   </properties>
 
   <dependencyManagement>
@@ -265,6 +268,31 @@
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
         <version>${h2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysema.codegen</groupId>
+        <artifactId>codegen</artifactId>
+        <version>${codegen.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysema.querydsl</groupId>
+        <artifactId>querydsl-apt</artifactId>
+        <version>${querydsl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysema.querydsl</groupId>
+        <artifactId>querydsl-core</artifactId>
+        <version>${querydsl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysema.querydsl</groupId>
+        <artifactId>querydsl-sql</artifactId>
+        <version>${querydsl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysema.querydsl</groupId>
+        <artifactId>querydsl-jpa</artifactId>
+        <version>${querydsl.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-collections</groupId>
@@ -649,6 +677,11 @@
         <artifactId>net.sourceforge.htmlunit-all</artifactId>
         <version>${htmlunit.wrapped.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.openengsb.wrapped</groupId>
+        <artifactId>org.apache.commons.collections15</artifactId>
+        <version>${collections15.wrapped.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.karaf.shell</groupId>
