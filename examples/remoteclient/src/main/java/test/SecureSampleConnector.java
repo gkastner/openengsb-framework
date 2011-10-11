@@ -65,11 +65,59 @@ import com.google.common.collect.ImmutableMap;
  * src/main/resources
  */
 public final class SecureSampleConnector {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(SecureSampleConnector.class);
-
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
     private static final String URL = "tcp://127.0.0.1:6549";
+
+    private static final class MyMessageListener implements MessageListener {
+        private MessageHandler handler;
+        private RequestHandler requestHander = new RequestHandler();
+
+        private MyMessageListener(SecretKey sessionKey) {
+            handler = new MessageHandler(sessionKey);
+        }
+
+        @Override
+        public void onMessage(Message message) {
+            LOGGER.info("recieved JMS-message");
+            TextMessage content = (TextMessage) message;
+            String text = getTextFromMessage(content);
+            MethodCallRequest request = handler.unmarshal(text);
+            MethodResult result = requestHander.process(request.getMethodCall());
+            try {
+                sendResult(request, result);
+            } catch (JMSException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+
+        private String getTextFromMessage(TextMessage content) {
+            String text;
+            try {
+                text = content.getText();
+            } catch (JMSException e) {
+                throw Throwables.propagate(e);
+            }
+            return text;
+        }
+
+        private void sendResult(MethodCallRequest request, MethodResult result) throws JMSException {
+            MethodResultMessage methodResultMessage = new MethodResultMessage(result, request.getCallId());
+            MessageProducer resultProducer = createProducerForCallId(request);
+
+            String resultText = handler.marshal(methodResultMessage);
+            TextMessage message2 = session.createTextMessage(resultText);
+            resultProducer.send(message2);
+        }
+
+        private MessageProducer createProducerForCallId(MethodCallRequest request) throws JMSException {
+            Destination callIdQueue = session.createQueue(request.getCallId());
+            MessageProducer resultProducer = session.createProducer(callIdQueue);
+            return resultProducer;
+        }
+
+    }
 
     private static Connection connection;
     private static Session session;
@@ -90,8 +138,7 @@ public final class SecureSampleConnector {
 
         MethodCall call =
             new MethodCall("registerInstanceKey", new Object[]{ "example-remote", keyBean }, ImmutableMap.of(
-                "serviceFilter",
-                "(objectClass=org.openengsb.core.api.security.ConnectorKeyRegistry)"));
+                "serviceFilter", "(objectClass=org.openengsb.core.api.security.ConnectorKeyRegistry)"));
 
         call(call, "admin", new Password("password"));
 
@@ -99,43 +146,7 @@ public final class SecureSampleConnector {
 
         // Set up a consumer to consume messages off of the admin queue
         MessageConsumer consumer = session.createConsumer(adminQueue);
-        consumer.setMessageListener(new MessageListener() {
-            @Override
-            public void onMessage(Message message) {
-                LOGGER.info("recieved JMS-message");
-                LOGGER.info(message.toString());
-                TextMessage content = (TextMessage) message;
-                try {
-                    String text = content.getText();
-                    LOGGER.info(text);
-                    byte[] decodeBase64 = Base64.decodeBase64(text);
-                    byte[] decrypted = CipherUtils.decrypt(decodeBase64, sessionKey);
-                    SecureRequest secureMessage = MAPPER.readValue(decrypted, SecureRequest.class);
-                    MethodCallRequest readValue = secureMessage.getMessage();
-                    Destination callIdQueue = session.createQueue(readValue.getCallId());
-                    MessageProducer resultProducer = session.createProducer(callIdQueue);
-                    MethodResult methodResult =
-                        new MethodResult(readValue.getMethodCall().getArgs()[0], ReturnType.Object);
-                    MethodResultMessage methodResultMessage =
-                        new MethodResultMessage(methodResult, readValue.getCallId());
-                    SecureResponse secureResponse = SecureResponse.create(methodResultMessage);
-
-                    byte[] value = MAPPER.writeValueAsBytes(secureResponse);
-                    byte[] encryptedResponse = CipherUtils.encrypt(value, sessionKey);
-                    String base64String = Base64.encodeBase64String(encryptedResponse);
-                    TextMessage message2 = session.createTextMessage(base64String);
-                    resultProducer.send(message2);
-                } catch (JMSException e) {
-                    throw Throwables.propagate(e);
-                } catch (IOException e) {
-                    throw Throwables.propagate(e);
-                } catch (DecryptionException e) {
-                    throw Throwables.propagate(e);
-                } catch (EncryptionException e) {
-                    throw Throwables.propagate(e);
-                }
-            }
-        });
+        consumer.setMessageListener(new MyMessageListener(sessionKey));
     }
 
     private static MethodResult call(MethodCall call, String username, Object credentials) throws IOException,
@@ -251,13 +262,6 @@ public final class SecureSampleConnector {
         LOGGER.info("initializing");
         init();
         LOGGER.info("initialized");
-        MethodCall methodCall =
-            new MethodCall("doSomething", new Object[]{ "Hello World!" }, ImmutableMap.of("serviceId",
-                "example+example+testlog", "contextId", "foo"));
-        LOGGER.info("calling method");
-        // MethodResult methodResult = call(methodCall, new Authentication("admin", "password"));
-        // System.out.println(methodResult);
-        LOGGER.info("running");
         System.in.read();
         LOGGER.info("stopping");
         stop();
