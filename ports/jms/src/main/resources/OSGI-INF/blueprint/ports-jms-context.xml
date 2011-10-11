@@ -39,6 +39,26 @@
     <property name="outputType" value="org.openengsb.core.api.remote.MethodResultMessage" />
     <property name="filters">
       <list>
+        <value>org.openengsb.core.common.remote.OutgoingWrapperFilter</value>
+        <value>org.openengsb.core.common.remote.OutgoingJsonSecureMarshalFilter</value>
+        <bean class="org.openengsb.core.security.filter.OutgoingMessageCryptoFilterFactory">
+          <property name="keySource" ref="keyProvider" />
+        </bean>
+        <value>org.openengsb.core.common.remote.ByteArrayToStringFilter</value>
+        <bean class="org.openengsb.ports.jms.JMSOutgoingPort">
+          <property name="factory">
+            <bean class="org.openengsb.ports.jms.JMSTemplateFactoryImpl" />
+          </property>
+        </bean>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="insecureOutgoingFilterChainFactory" class="org.openengsb.core.common.remote.FilterChainFactory">
+    <property name="inputType" value="org.openengsb.core.api.remote.MethodCallRequest" />
+    <property name="outputType" value="org.openengsb.core.api.remote.MethodResultMessage" />
+    <property name="filters">
+      <list>
         <value>org.openengsb.core.common.remote.JsonOutgoingMethodCallMarshalFilter</value>
         <bean class="org.openengsb.ports.jms.JMSOutgoingPort">
           <property name="factory">
@@ -49,7 +69,8 @@
     </property>
   </bean>
 
-  <bean id="incomingPortBean" class="org.openengsb.ports.jms.JMSIncomingPort" init-method="start" destroy-method="stop">
+  <bean id="incomingPortBean" class="org.openengsb.ports.jms.JMSIncomingPort" init-method="start"
+    destroy-method="stop">
     <property name="factory">
       <bean class="org.openengsb.ports.jms.JMSTemplateFactoryImpl" />
     </property>
@@ -94,10 +115,12 @@
     <property name="authenticationManager" ref="authenticator" />
   </bean>
 
-  <reference id="authenticator" interface="org.openengsb.domain.authentication.AuthenticationDomain" filter="(location.root=authentication-root)" />
+  <reference id="authenticator" interface="org.openengsb.domain.authentication.AuthenticationDomain"
+    filter="(location.root=authentication-root)" />
   <reference id="openengsbBrokerConnectionFactory" interface="javax.jms.ConnectionFactory" />
   <reference id="requestHandler" interface="org.openengsb.core.api.remote.RequestHandler" />
   <reference id="privateKeySource" interface="org.openengsb.core.api.security.PrivateKeySource" />
+  <reference id="keyProvider" interface="org.openengsb.core.api.security.ConnectorKeyProvider" />
 
 </blueprint>
 

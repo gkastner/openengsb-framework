@@ -41,7 +41,6 @@ public class UserDataInitializer implements Runnable {
         OsgiUtilsService serviceUtilsService = OpenEngSBCoreServices.getServiceUtilsService();
         Filter filter = serviceUtilsService.makeFilter(UserDataManager.class, "(internal=true)");
         UserDataManager userManager = (UserDataManager) serviceUtilsService.getService(filter);
-
         if (!userManager.getUserList().isEmpty()) {
             return;
         }

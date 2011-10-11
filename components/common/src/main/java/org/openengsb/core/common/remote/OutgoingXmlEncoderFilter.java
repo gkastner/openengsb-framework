@@ -57,11 +57,11 @@ import com.google.common.base.Preconditions;
  * </pre>
  * </code>
  */
-public class XmlEncoderFilter extends AbstractFilterChainElement<Document, Document> {
+public class OutgoingXmlEncoderFilter extends AbstractFilterChainElement<Document, Document> {
 
     private FilterAction next;
 
-    public XmlEncoderFilter() {
+    public OutgoingXmlEncoderFilter() {
         super(Document.class, Document.class);
     }
 

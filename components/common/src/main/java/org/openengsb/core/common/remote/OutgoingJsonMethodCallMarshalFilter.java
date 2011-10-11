@@ -34,7 +34,7 @@ import org.openengsb.core.api.remote.MethodResultMessage;
 /**
  * This filter takes a {@link MethodCallRequest} and serializes it to JSON. The String s then passed on to the next
  * filter. The returned JSON-String representing a {@link MethodResultMessage} is then deserialized and returned.
- *
+ * 
  * <code>
  * <pre>
  *      [MethodCallRequest]   > Filter > [MethodCallRequest as JSON-string]     > ...
@@ -44,12 +44,12 @@ import org.openengsb.core.api.remote.MethodResultMessage;
  * </pre>
  * </code>
  */
-public class JsonOutgoingMethodCallMarshalFilter extends
+public class OutgoingJsonMethodCallMarshalFilter extends
         AbstractFilterChainElement<MethodCallRequest, MethodResultMessage> {
 
     private FilterAction next;
 
-    public JsonOutgoingMethodCallMarshalFilter() {
+    public OutgoingJsonMethodCallMarshalFilter() {
         super(MethodCallRequest.class, MethodResultMessage.class);
     }
 

@@ -44,6 +44,7 @@ public class OutgoingPortImpl implements OutgoingPort {
         HashMap<String, Object> metaData = new HashMap<String, Object>();
         metaData.put("callId", call.getCallId());
         metaData.put("destination", call.getDestination());
+        metaData.putAll(call.getMethodCall().getMetaData());
         return metaData;
     }
 

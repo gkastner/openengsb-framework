@@ -45,7 +45,7 @@ import org.openengsb.core.api.remote.OutgoingPort;
 import org.openengsb.core.common.OpenEngSBCoreServices;
 import org.openengsb.core.common.OutgoingPortImpl;
 import org.openengsb.core.common.remote.FilterChainFactory;
-import org.openengsb.core.common.remote.JsonOutgoingMethodCallMarshalFilter;
+import org.openengsb.core.common.remote.OutgoingJsonMethodCallMarshalFilter;
 import org.openengsb.core.common.util.DefaultOsgiUtilsService;
 import org.openengsb.core.test.AbstractOsgiMockServiceTest;
 import org.osgi.framework.BundleContext;
@@ -99,7 +99,7 @@ public class JMSOutgoingPortTest extends AbstractOsgiMockServiceTest {
         FilterChainFactory<MethodCallRequest, MethodResultMessage> factory =
             new FilterChainFactory<MethodCallRequest, MethodResultMessage>(MethodCallRequest.class,
                 MethodResultMessage.class);
-        factory.setFilters(Arrays.asList(JsonOutgoingMethodCallMarshalFilter.class, jmsOutgoingPort));
+        factory.setFilters(Arrays.asList(OutgoingJsonMethodCallMarshalFilter.class, jmsOutgoingPort));
 
         OutgoingPortImpl outgoingPort = new OutgoingPortImpl();
         outgoingPort.setFilterChain(factory.create());

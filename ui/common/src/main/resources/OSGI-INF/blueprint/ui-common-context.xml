@@ -41,6 +41,7 @@
   <reference id="persistenceManager" interface="org.openengsb.core.api.persistence.PersistenceManager" />
   <reference id="ekbService" interface="org.openengsb.core.api.ekb.EngineeringKnowledgeBaseService" />
   <reference id="authorizer" interface="org.openengsb.domain.authorization.AuthorizationDomain" filter="(location.root=authorization-root)" />
+  <reference id="userManager" interface="org.openengsb.core.api.security.service.UserDataManager" />
 
 </blueprint>
 
