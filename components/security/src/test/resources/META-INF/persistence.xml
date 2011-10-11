@@ -30,6 +30,8 @@
     <class>org.openengsb.core.security.internal.model.PermissionData</class>
     <class>org.openengsb.core.security.internal.model.PermissionSetData</class>
     <class>org.openengsb.core.security.internal.model.UserPermissionSetData</class>
+    
+    <class>org.openengsb.core.security.internal.model.KeyBeanData</class>
 
     <properties>
       <property name="openjpa.Log" value="slf4j" />

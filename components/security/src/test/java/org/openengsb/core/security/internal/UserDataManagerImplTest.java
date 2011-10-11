@@ -24,22 +24,13 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openengsb.core.api.AbstractPermissionProvider;
 import org.openengsb.core.api.OsgiUtilsService;
@@ -50,13 +41,12 @@ import org.openengsb.core.api.security.service.UserNotFoundException;
 import org.openengsb.core.common.OpenEngSBCoreServices;
 import org.openengsb.core.common.util.DefaultOsgiUtilsService;
 import org.openengsb.core.security.internal.model.UserData;
-import org.openengsb.core.test.AbstractOsgiMockServiceTest;
 import org.openengsb.domain.authorization.AuthorizationDomain.Access;
 import org.osgi.framework.BundleContext;
 
 import com.google.common.base.Objects;
 
-public class UserDataManagerImplTest extends AbstractOsgiMockServiceTest {
+public class UserDataManagerImplTest extends AbstractPersistenceTest {
 
     public static class TestPermission implements Permission {
         private String desiredResult;
@@ -103,18 +93,13 @@ public class UserDataManagerImplTest extends AbstractOsgiMockServiceTest {
 
     }
 
-    private static EntityManager entityManager;
-
     private UserDataManager userManager;
 
     private UserData testUser2;
     private UserData testUser3;
 
-    private static EntityManagerFactory emf;
-
     @Before
     public void setUp() throws Exception {
-        executeDelete("UserData", "PermissionData", "PermissionSetData", "EntryValue");
         setupUserManager();
         testUser2 = new UserData("testUser2");
         entityManager.persist(testUser2);
@@ -122,46 +107,15 @@ public class UserDataManagerImplTest extends AbstractOsgiMockServiceTest {
         entityManager.persist(testUser3);
     }
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        emf = Persistence.createEntityManagerFactory("security-test");
-        setupPersistence();
-    }
-
-    private static void setupPersistence() {
-        entityManager = emf.createEntityManager();
-    }
-
-    private void executeDelete(String... query) {
-        entityManager.getTransaction().begin();
-        for (String q : query) {
-            // somehow fails after 3 tests ro so with JPQL-queries
-            entityManager.createQuery(String.format("DELETE FROM %s", q)).executeUpdate();
-        }
-        entityManager.getTransaction().commit();
+    @Override
+    protected String[] getEntityNames() {
+        return new String[]{ "UserData", "PermissionData", "PermissionSetData", "EntryValue", };
     }
 
     private void setupUserManager() {
         final UserDataManagerImpl userManager = new UserDataManagerImpl();
         userManager.setEntityManager(entityManager);
-        InvocationHandler invocationHandler = new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                entityManager.getTransaction().begin();
-                Object result;
-                try {
-                    result = method.invoke(userManager, args);
-                } catch (InvocationTargetException e) {
-                    entityManager.getTransaction().rollback();
-                    throw e.getCause();
-                }
-                entityManager.getTransaction().commit();
-                return result;
-            }
-        };
-        this.userManager =
-            (UserDataManager) Proxy.newProxyInstance(this.getClass().getClassLoader(),
-                new Class<?>[]{ UserDataManager.class }, invocationHandler);
+        this.userManager = getProxiedService(userManager, UserDataManager.class);
 
         Dictionary<String, Object> props = new Hashtable<String, Object>();
         props.put("permissionClass", TestPermission.class.getName());
