@@ -53,10 +53,13 @@ class RequestHandler {
             return makeExceptionResult(e);
         }
         try {
-            LOGGER.debug("invoking method");
+            LOGGER.info("invoking method {}", method);
             Object result = method.invoke(connector, request.getArgs());
             if (method.getReturnType().equals(void.class)) {
-                return new MethodResult(null, ReturnType.Void);
+                MethodResult methodResult = new MethodResult();
+                methodResult.setClassName(Object.class.getName());
+                methodResult.setType(ReturnType.Void);
+                return methodResult;
             }
             LOGGER.debug("invocation successful");
             return new MethodResult(result);
